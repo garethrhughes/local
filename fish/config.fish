@@ -5,7 +5,8 @@ if status is-interactive
    alias bat "batcat"
    alias kssh "kitty +kitten ssh"
    source ~/.asdf/asdf.fish
-
+   source ~/.config/fish/completions/granted_completer_fish.fish
+   
    starship init fish | source
 end
 

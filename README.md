@@ -23,3 +23,11 @@ https://github.com/sharkdp/bat
 ## Fish Shell
 
 https://fishshell.com/
+
+## Granted
+
+https://www.granted.dev/
+
+## Pokemon Color Scripts
+
+https://gitlab.com/phoneybadger/pokemon-colorscripts
