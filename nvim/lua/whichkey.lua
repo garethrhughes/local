@@ -85,7 +85,7 @@ local opts = {
 }
 
 local mappings = {
-    ["e"] = {"<cmd>NvimTreeToggle<cr>", "Explorer"}
+    ["e"] = {"<cmd>NvimTreeFocus<cr>", "Explorer"},
 }
 
 which_key.register(mappings, opts)
