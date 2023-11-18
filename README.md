@@ -19,3 +19,7 @@ https://starship.rs
 ## Bat
 
 https://github.com/sharkdp/bat
+
+## Fish Shell
+
+https://fishshell.com/
