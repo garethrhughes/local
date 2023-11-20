@@ -31,3 +31,8 @@ https://www.granted.dev/
 ## Pokemon Color Scripts
 
 https://gitlab.com/phoneybadger/pokemon-colorscripts
+
+## Packages 
+
+- `fzf`
+- `ripgrep`
