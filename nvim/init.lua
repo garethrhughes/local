@@ -105,11 +105,11 @@ require("lazy").setup {{
           indent = { enable = true },  
         })
     end
- }
+ }, { "rebelot/kanagawa.nvim", name = "kanagawa" }
 }
 
 vim.opt.termguicolors = true
-vim.cmd 'colorscheme tokyonight-night'
+vim.cmd 'colorscheme kanagawa'
 vim.cmd 'set number'
 vim.cmd 'set tabstop=2'
 vim.cmd 'set shiftwidth=2'

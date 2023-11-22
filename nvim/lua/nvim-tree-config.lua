@@ -9,7 +9,9 @@ if not config_status_ok then
     return
 end
 
-local tree_cb = nvim_tree_config.nvim_tree_callback < D - a > nvim_tree.setup {
+local tree_cb = nvim_tree_config.nvim_tree_callback 
+
+nvim_tree.setup {
     update_focused_file = {
         enable = true,
         update_cwd = true

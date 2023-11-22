@@ -20,11 +20,11 @@ $nodejs\
 $nim\
 $rust\
 $scala\
-[](fg:#86BBD8 bg:#06969A)\
+[](fg:#86BBD8 bg:#33658A)\
+$aws\
+[](fg:#33658A bg:#06969A)\
 $docker_context\
-[](fg:#06969A bg:#33658A)\
-$time\
-[ ](fg:#33658A)\
+[](fg:#06969A) \
 """
 
 # Disable the blank line at the start of the prompt
@@ -36,7 +36,7 @@ $time\
 show_always = true
 style_user = "bg:#9A348E"
 style_root = "bg:#9A348E"
-format = '[  $user ]($style)'
+format = '[ 󰀵 $user ]($style)'
 disabled = false
 
 # An alternative to the username module which displays a symbol that
@@ -64,6 +64,13 @@ truncation_symbol = "…/"
 # So either put "Important Documents" before "Documents" or use the substituted version:
 # "Important  " = "  "
 
+[aws]
+format = '[ $symbol $profile ]($style)'
+style = 'bold white bg:#33658A'
+symbol = '󰀸'
+[aws.profile_aliases]
+Enterprise_Naming_Scheme-voidstars = 'void**'
+
 [c]
 symbol = " "
 style = "bg:#86BBD8"
@@ -72,7 +79,7 @@ format = '[ $symbol ($version) ]($style)'
 [docker_context]
 symbol = " "
 style = "bg:#06969A"
-format = '[ $symbol $context ]($style) $path'
+format = '[ $symbol $context ]($style)$path'
 
 [elixir]
 symbol = " "
