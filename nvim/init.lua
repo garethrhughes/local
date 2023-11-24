@@ -257,8 +257,14 @@ nvim_lsp.intelephense.setup(
 )
 
 require("bufferline").setup {
+    highlights = {
+        fill = {
+            bg = "#1f1f28"
+        }
+    },
     options= {
-        always_show_bufferline = false,
+        always_show_bufferline = true,
+        middle_mouse_command = "bdelete! %d",
         offsets = {
             {
                 filetype = "NvimTree",
