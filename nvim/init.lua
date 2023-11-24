@@ -12,7 +12,50 @@ require("lazy").setup {{
     lazy = false,
     dependencies = {"nvim-tree/nvim-web-devicons"},
     config = function()
-        require("nvim-tree").setup {}
+    
+        require("nvim-tree").setup {
+          filters = {
+            dotfiles = false,
+            git_clean = false,
+            no_buffer = false,
+            exclude = { 'logs' },
+            custom = { '.git' }
+          },
+          update_focused_file = {
+            enable = true,
+            update_cwd = true
+          },
+
+          renderer = {
+            root_folder_modifier = ":t",
+            -- These icons are visible when you install web-devicons
+            icons = {
+                glyphs = {
+                    default = "",
+                    symlink = "",
+                    folder = {
+                        arrow_open = "",
+                        arrow_closed = "",
+                        default = "",
+                        open = "",
+                        empty = "",
+                        empty_open = "",
+                        symlink = "",
+                        symlink_open = ""
+                    },
+                    git = {
+                        unstaged = "",
+                        staged = "S",
+                        unmerged = "",
+                        renamed = "➜",
+                        untracked = "U",
+                        deleted = "",
+                        ignored = "◌"
+                    }
+                }
+            }
+          }
+        }
     end
 }, {
     'romgrk/barbar.nvim',
@@ -107,7 +150,6 @@ require("lazy").setup {{
     end
  }, { "rebelot/kanagawa.nvim", name = "kanagawa" }
 }
-
 vim.opt.termguicolors = true
 vim.cmd 'colorscheme kanagawa'
 vim.cmd 'set number'
@@ -115,8 +157,8 @@ vim.cmd 'set tabstop=2'
 vim.cmd 'set shiftwidth=2'
 vim.cmd 'set expandtab'
 vim.cmd 'set smartindent'
+vim.cmd 'set clipboard=unnamedplus'
 
-require "nvim-tree-config"
 require "whichkey"
 require('lualine').setup()
 
