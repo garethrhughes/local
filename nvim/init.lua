@@ -152,6 +152,15 @@ require("lazy").setup {
         end
     },
     {"rebelot/kanagawa.nvim", name = "kanagawa"},
+    {
+      "folke/trouble.nvim",
+      dependencies = { "nvim-tree/nvim-web-devicons" },
+      opts = {
+        -- your configuration comes here
+        -- or leave it empty to use the default settings
+        -- refer to the configuration section below
+      },
+    }
 }
 
 vim.opt.termguicolors = true
@@ -163,6 +172,7 @@ vim.cmd "set expandtab"
 vim.cmd "set smartindent"
 vim.cmd "set clipboard=unnamedplus"
 vim.cmd "set fillchars+=vert:\\ "
+
 
 require "whichkey"
 require("lualine").setup {
@@ -276,3 +286,14 @@ require("bufferline").setup {
         },
     }
 }
+
+
+vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
+  vim.lsp.diagnostic.on_publish_diagnostics,
+  {
+    virtual_text = false,
+    signs = true,
+    update_in_insert = false,
+    underline = true,
+  }
+)
