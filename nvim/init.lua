@@ -73,10 +73,6 @@ require("lazy").setup {
         "akinsho/bufferline.nvim",
         dependencies = 'nvim-tree/nvim-web-devicons'
     },
-    {
-        "akinsho/bufferline.nvim",
-        dependencies = {"nvim-tree/nvim-web-devicons"}
-    },
     {"folke/tokyonight.nvim"},
     {
         "phaazon/hop.nvim",
