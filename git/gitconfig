@@ -1,0 +1,7 @@
+[user]
+	name = Gareth Hughes
+	email = hughesrgareth@gmail.com
+[init]
+	defaultBranch = main
+[pull]
+	rebase = false

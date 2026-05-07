@@ -1,38 +1,79 @@
-# Requirements
+# local
 
-## ASDF
+Dotfiles and machine setup for macOS and Kubuntu.
 
-https://github.com/asdf-vm/asdf
+## Quick Start
 
-## Kitty
+```bash
+git clone git@github.com:garethrhughes/local.git ~/dotfiles/local
+cd ~/dotfiles/local
+./install.sh
+```
 
-https://sw.kovidgoyal.net/kitty/
+Each component is **optional** — the installer will prompt you for each one.
 
-## Neovim
+## Scripts
 
-https://neovim.io/
+| Script | Purpose |
+|--------|---------|
+| `install.sh` | Interactive setup — installs tools and symlinks config files |
+| `doctor.sh` | Health check — verifies all tools and symlinks are in place |
 
-## Starship
+```bash
+./doctor.sh   # check for issues after install
+```
 
-https://starship.rs
+## Components
 
-## Bat
+### Shell
+- **Fish** — default shell with fisher plugin manager
+- **Starship** — cross-shell prompt
 
-https://github.com/sharkdp/bat
+### Fonts
+- **JetBrainsMono Nerd Font** — used by terminal and Neovim
 
-## Fish Shell
+### Terminal
+- **Ghostty** (macOS) — with config at `ghostty/config`
+- **Kitty** (Linux) — with config at `kitty/kitty.conf`
+- **Scroll Reverser** (macOS)
 
-https://fishshell.com/
+### Editors
+- **Neovim** — via [garethrhughes/nvim-setup](https://github.com/garethrhughes/nvim-setup)
+- **VS Code** + GitHub Copilot extension
+- **Sublime Text**
+- **Sublime Merge**
 
-## Granted
+### CLI Tools
+- `bat` · `fzf` · `ripgrep` · `fd`
+- `git` — with config symlinked from `git/gitconfig`
+- `asdf` — version manager
+- `node` — via asdf
+- `docker` — Docker Engine (Linux) / Docker Desktop (macOS) + Compose v2
+- `granted` — AWS assume
+- `pokemon-colorscripts` — fish greeting
+- `opencode` — AI coding agent
 
-https://www.granted.dev/
+### Apps
+- Firefox · Bitwarden · Spotify · Discord
 
-## Pokemon Color Scripts
+> **Bitwarden browser extensions** — links are printed during install:
+> Firefox · Chrome · Safari (macOS)
 
-https://gitlab.com/phoneybadger/pokemon-colorscripts
+### Linux (Kubuntu)
+- Snap is **disabled** during setup (Mozilla PPA used for Firefox instead)
 
-## Packages 
+## Config Layout
 
-- `fzf`
-- `ripgrep`
+```
+bat/          → ~/.config/bat/
+fish/         → ~/.config/fish/
+ghostty/      → ~/.config/ghostty/   (macOS)
+kitty/        → ~/.config/kitty/     (Linux)
+git/          → ~/.gitconfig
+starship/     → ~/.config/starship.toml
+```
+
+## Requirements
+
+- macOS: Homebrew (installed automatically if missing)
+- Linux: `sudo` access, Kubuntu/Ubuntu-based distro
