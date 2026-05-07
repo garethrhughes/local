@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # doctor.sh — Check installation health for garethrhughes/local setup
-set -euo pipefail
+set -uo pipefail
 
 # ─── Colours ────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -8,9 +8,9 @@ CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
 
 PASS=0; WARN=0; FAIL=0
 
-pass()  { echo -e "  ${GREEN}✔${RESET}  $*"; ((PASS++)); }
-warn()  { echo -e "  ${YELLOW}⚠${RESET}  $*"; ((WARN++)); }
-fail()  { echo -e "  ${RED}✘${RESET}  $*"; ((FAIL++)); }
+pass()  { echo -e "  ${GREEN}✔${RESET}  $*"; ((PASS++)) || true; }
+warn()  { echo -e "  ${YELLOW}⚠${RESET}  $*"; ((WARN++)) || true; }
+fail()  { echo -e "  ${RED}✘${RESET}  $*"; ((FAIL++)) || true; }
 header(){ echo -e "\n${BOLD}${CYAN}── $* ──${RESET}"; }
 
 check_cmd() {
