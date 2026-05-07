@@ -140,28 +140,30 @@ setup_fish() {
     fi
 
     # Set as default shell
-    FISH_PATH="$(command -v fish)"
-    if [[ "$SHELL" != "$FISH_PATH" ]]; then
-        if prompt_yn "Set fish as default shell?" y; then
-            if ! grep -q "$FISH_PATH" /etc/shells; then
-                echo "$FISH_PATH" | sudo tee -a /etc/shells
-            fi
-            chsh -s "$FISH_PATH"
-            ok "Default shell set to fish"
+    local fish_path
+    fish_path="$(command -v fish)"
+    if [[ "$SHELL" != "$fish_path" ]]; then
+        info "Setting fish as the default shell..."
+        if ! grep -qx "$fish_path" /etc/shells; then
+            echo "$fish_path" | sudo tee -a /etc/shells
+            ok "Added $fish_path to /etc/shells"
         fi
+        chsh -s "$fish_path"
+        ok "Default shell changed to fish ($fish_path)"
+        warn "Log out and back in (or start a new login session) for the change to take effect"
     else
-        ok "Fish is already the default shell"
+        ok "Fish is already the default shell ($fish_path)"
     fi
 
     # Symlink fish config
-    symlink "$DOTFILES_DIR/fish/config.fish"   "$HOME/.config/fish/config.fish"
-    symlink "$DOTFILES_DIR/fish/fish_plugins"  "$HOME/.config/fish/fish_plugins"
+    symlink "$DOTFILES_DIR/fish/config.fish"    "$HOME/.config/fish/config.fish"
+    symlink "$DOTFILES_DIR/fish/fish_plugins"   "$HOME/.config/fish/fish_plugins"
     symlink "$DOTFILES_DIR/fish/fish_variables" "$HOME/.config/fish/fish_variables"
 
-    # Copy functions and conf.d (symlink the whole dirs)
-    symlink "$DOTFILES_DIR/fish/functions"     "$HOME/.config/fish/functions"
-    symlink "$DOTFILES_DIR/fish/conf.d"        "$HOME/.config/fish/conf.d"
-    symlink "$DOTFILES_DIR/fish/completions"   "$HOME/.config/fish/completions"
+    # Symlink whole dirs
+    symlink "$DOTFILES_DIR/fish/functions"   "$HOME/.config/fish/functions"
+    symlink "$DOTFILES_DIR/fish/conf.d"      "$HOME/.config/fish/conf.d"
+    symlink "$DOTFILES_DIR/fish/completions" "$HOME/.config/fish/completions"
 
     # Install fisher + plugins
     if command_exists fish; then
@@ -253,53 +255,36 @@ setup_neovim() {
     fi
 }
 
-# ─── ASDF ────────────────────────────────────────────────────────────────────
-setup_asdf() {
-    header "asdf Version Manager"
+# ─── Node.js (via nvm) ───────────────────────────────────────────────────────
+setup_nvm() {
+    header "Node.js (via nvm)"
+
+    # nvm.fish (jorgebucaran/nvm.fish) is the fish-native nvm — installed via
+    # fisher as part of fish_plugins. We just need node itself installed.
+    # On macOS we also install the standalone nvm for non-fish shells, but the
+    # primary driver for fish is nvm.fish.
+
     if [[ "$OS" == "macos" ]]; then
-        brew_install asdf
+        brew_install nvm
     else
-        if [[ ! -d "$HOME/.asdf" ]]; then
-            info "Installing asdf..."
-            git clone https://github.com/asdf-vm/asdf.git "$HOME/.asdf" --branch v0.14.0
+        # Install nvm via the official install script for bash/non-fish bootstrap
+        if [[ ! -d "$HOME/.nvm" ]]; then
+            info "Installing nvm..."
+            local nvm_ver
+            nvm_ver=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest \
+                | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+            curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/v${nvm_ver}/install.sh" | bash
         else
-            ok "asdf already installed"
+            ok "nvm already installed at ~/.nvm"
         fi
     fi
-}
 
-# ─── Node.js (via asdf) ──────────────────────────────────────────────────────
-setup_nodejs() {
-    header "Node.js (via asdf)"
-    setup_asdf
-
-    # Ensure asdf on PATH for this script
-    if [[ "$OS" == "linux" && -f "$HOME/.asdf/asdf.sh" ]]; then
-        # shellcheck disable=SC1091
-        source "$HOME/.asdf/asdf.sh"
-    fi
-
-    if ! command_exists asdf; then
-        warn "asdf not found on PATH — skipping Node install. Re-run after restarting shell."
-        return
-    fi
-
-    if ! asdf plugin list | grep -q nodejs; then
-        info "Adding asdf nodejs plugin..."
-        asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
-    else
-        ok "asdf nodejs plugin already added"
-    fi
-
-    local node_version
-    node_version=$(asdf list nodejs 2>/dev/null | grep -v '^$' | tail -1 | tr -d ' *' || true)
-
-    if [[ -z "$node_version" ]]; then
-        info "Installing latest Node.js LTS via asdf..."
-        asdf install nodejs latest
-        asdf global nodejs latest
-    else
-        ok "Node.js $node_version already installed via asdf"
+    # Install latest LTS node via nvm.fish if fish is available
+    if command_exists fish; then
+        info "Installing latest Node.js LTS via nvm.fish..."
+        fish -c "nvm install lts && nvm use lts" 2>/dev/null || \
+            warn "nvm.fish node install failed — run 'nvm install lts' manually in fish"
+        ok "Node.js LTS installed via nvm.fish"
     fi
 }
 
@@ -742,8 +727,7 @@ main() {
         "terminal:Terminal (Ghostty/macOS · Kitty/Linux)"
         "starship:Starship Prompt"
         "neovim:Neovim (nvim-setup)"
-        "asdf:asdf version manager"
-        "nodejs:Node.js (via asdf)"
+        "nvm:Node.js (via nvm)"
         "cli_tools:Core CLI tools (bat, fzf, ripgrep, fd)"
         "granted:Granted (AWS assume)"
         "pokemon:Pokemon Colorscripts"
@@ -787,9 +771,8 @@ main() {
     [[ "${SELECTED[fish]:-0}" == "1" ]]         && setup_fish
     [[ "${SELECTED[terminal]:-0}" == "1" ]]     && setup_terminal
     [[ "${SELECTED[starship]:-0}" == "1" ]]     && setup_starship
-    [[ "${SELECTED[asdf]:-0}" == "1" ]]         && setup_asdf
-    [[ "${SELECTED[nodejs]:-0}" == "1" ]]       && setup_nodejs
     [[ "${SELECTED[neovim]:-0}" == "1" ]]       && setup_neovim
+    [[ "${SELECTED[nvm]:-0}" == "1" ]]          && setup_nvm
     [[ "${SELECTED[cli_tools]:-0}" == "1" ]]    && setup_cli_tools
     [[ "${SELECTED[granted]:-0}" == "1" ]]      && setup_granted
     [[ "${SELECTED[pokemon]:-0}" == "1" ]]      && setup_pokemon

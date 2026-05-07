@@ -24,22 +24,6 @@ if status is-interactive
     # alias assume="source /usr/local/bin/assume.fish"
     alias kssh "kitty +kitten ssh"
 
-    # asdf shims
-    if test -z $ASDF_DATA_DIR
-        set _asdf_shims "$HOME/.asdf/shims"
-    else
-        set _asdf_shims "$ASDF_DATA_DIR/shims"
-    end
-    if not contains $_asdf_shims $PATH
-        set -gx --prepend PATH $_asdf_shims
-    end
-    set --erase _asdf_shims
-
-    # asdf completions
-    if test -f ~/.config/fish/completions/asdf.fish
-        source ~/.config/fish/completions/asdf.fish
-    end
-
     # granted completions
     if test -f ~/.config/fish/completions/granted_completer_fish.fish
         source ~/.config/fish/completions/granted_completer_fish.fish

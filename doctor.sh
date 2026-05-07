@@ -131,21 +131,29 @@ check_nvim() {
     check_file "$HOME/dotfiles/nvim-setup/install.sh" "nvim-setup repo"
 }
 
-check_asdf() {
-    header "asdf"
-    check_cmd asdf "asdf"
-    if command -v asdf &>/dev/null; then
-        if asdf plugin list 2>/dev/null | grep -q nodejs; then
-            pass "asdf nodejs plugin installed"
-            local node_ver
-            node_ver=$(asdf current nodejs 2>/dev/null | awk '{print $2}' || true)
-            if [[ -n "$node_ver" && "$node_ver" != "______" ]]; then
-                pass "Node.js $node_ver (asdf)"
-            else
-                warn "No global Node.js version set in asdf"
-            fi
+check_nvm() {
+    header "Node.js (nvm)"
+    # nvm.fish is the fish-native manager; check for it via fisher
+    if command -v fish &>/dev/null; then
+        if fish -c "fisher list" 2>/dev/null | grep -q "nvm.fish"; then
+            pass "nvm.fish fisher plugin installed"
         else
-            warn "asdf nodejs plugin not installed"
+            warn "nvm.fish fisher plugin not installed (run: fisher install jorgebucaran/nvm.fish)"
+        fi
+        local node_ver
+        node_ver=$(fish -c "node --version" 2>/dev/null || true)
+        if [[ -n "$node_ver" ]]; then
+            pass "Node.js $node_ver (nvm.fish)"
+        else
+            warn "No active Node.js version in nvm.fish (run: nvm install lts)"
+        fi
+    fi
+    # Also check standalone nvm on Linux
+    if [[ "$OS" == "linux" ]]; then
+        if [[ -d "$HOME/.nvm" ]]; then
+            pass "nvm installed at ~/.nvm"
+        else
+            warn "~/.nvm not found"
         fi
     fi
     check_cmd node "node"
@@ -355,7 +363,7 @@ main() {
     check_prompt
     check_fish_config
     check_nvim
-    check_asdf
+    check_nvm
     check_cli_tools
     check_git
     check_docker

@@ -46,8 +46,8 @@ Each component is **optional** — the installer will prompt you for each one.
 ### CLI Tools
 - `bat` · `fzf` · `ripgrep` · `fd`
 - `git` — with config symlinked from `git/gitconfig`
-- `asdf` — version manager
-- `node` — via asdf
+- `nvm` — Node version manager (nvm.fish for fish, standalone nvm on Linux)
+- `node` — LTS via nvm
 - `docker` — Docker Engine (Linux) / Docker Desktop (macOS) + Compose v2
 - `granted` — AWS assume
 - `pokemon-colorscripts` — fish greeting
