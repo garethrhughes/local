@@ -178,9 +178,12 @@ setup_fish() {
 setup_terminal() {
     header "Terminal Emulator"
     if [[ "$OS" == "macos" ]]; then
-        info "Installing Ghostty (macOS)"
-        brew_cask_install ghostty
-        symlink "$DOTFILES_DIR/ghostty/config" "$HOME/.config/ghostty/config"
+        info "Installing Kitty (macOS)"
+        if ! command_exists kitty; then
+            brew_cask_install kitty
+        else
+            ok "Kitty already installed"
+        fi
 
         info "Installing Scroll Reverser (macOS)"
         if ! brew list --cask scroll-reverser &>/dev/null 2>&1; then
@@ -193,18 +196,19 @@ setup_terminal() {
         else
             ok "Kitty already installed"
         fi
-        mkdir -p "$HOME/.config/kitty"
-        symlink "$DOTFILES_DIR/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
-        symlink "$DOTFILES_DIR/kitty/tab_bar.py"  "$HOME/.config/kitty/tab_bar.py"
-
-        # Init kitty-themes submodule
-        if [[ ! -f "$DOTFILES_DIR/kitty/kitty-themes/themes/Chalk.conf" ]]; then
-            info "Initialising kitty-themes submodule..."
-            git -C "$DOTFILES_DIR" submodule update --init --recursive
-        fi
-        symlink "$DOTFILES_DIR/kitty/kitty-themes/themes/Chalk.conf" \
-                "$DOTFILES_DIR/kitty/theme.conf"
     fi
+
+    mkdir -p "$HOME/.config/kitty"
+    symlink "$DOTFILES_DIR/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
+    symlink "$DOTFILES_DIR/kitty/tab_bar.py"  "$HOME/.config/kitty/tab_bar.py"
+
+    # Init kitty-themes submodule
+    if [[ ! -f "$DOTFILES_DIR/kitty/kitty-themes/themes/Chalk.conf" ]]; then
+        info "Initialising kitty-themes submodule..."
+        git -C "$DOTFILES_DIR" submodule update --init --recursive
+    fi
+    symlink "$DOTFILES_DIR/kitty/kitty-themes/themes/Chalk.conf" \
+            "$DOTFILES_DIR/kitty/theme.conf"
 }
 
 # ─── Starship ────────────────────────────────────────────────────────────────

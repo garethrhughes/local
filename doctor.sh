@@ -81,18 +81,15 @@ check_shell() {
 
 check_terminal() {
     header "Terminal"
+    check_cmd kitty "Kitty"
+    check_file "$HOME/.config/kitty/kitty.conf" "Kitty config"
+    check_file "$HOME/.config/kitty/tab_bar.py"  "Kitty tab_bar.py"
     if [[ "$OS" == "macos" ]]; then
-        check_cmd ghostty "Ghostty" || warn "Ghostty not on PATH (may need to open app manually)"
-        check_file "$HOME/.config/ghostty/config" "Ghostty config"
         if command -v open &>/dev/null && open -Ra "Scroll Reverser" 2>/dev/null; then
             pass "Scroll Reverser installed"
         else
             warn "Scroll Reverser not found in /Applications"
         fi
-    else
-        check_cmd kitty "Kitty"
-        check_file "$HOME/.config/kitty/kitty.conf" "Kitty config"
-        check_file "$HOME/.config/kitty/tab_bar.py"  "Kitty tab_bar.py"
     fi
 }
 
@@ -319,11 +316,7 @@ check_dotfiles_symlinks() {
     check_file "$HOME/.config/fish/config.fish"   "fish/config.fish"
     check_file "$HOME/.config/starship.toml"       "starship.toml"
     check_file "$HOME/.config/bat/config"          "bat/config"
-    if [[ "$OS" == "macos" ]]; then
-        check_file "$HOME/.config/ghostty/config"  "ghostty/config"
-    else
-        check_file "$HOME/.config/kitty/kitty.conf" "kitty/kitty.conf"
-    fi
+    check_file "$HOME/.config/kitty/kitty.conf" "kitty/kitty.conf"
 }
 
 # ─── Summary ─────────────────────────────────────────────────────────────────
