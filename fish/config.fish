@@ -38,5 +38,8 @@ if status is-interactive
 end
 
 function fish_greeting
-    pokemon-colorscripts -r 1-2 --no-title
+  if status is-interactive
+    and not set -q KITTY_CHEATSHEET
+     pokemon-colorscripts -r 1-2 --no-title 
+   end
 end
