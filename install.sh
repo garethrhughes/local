@@ -66,7 +66,16 @@ brew_install() {
 brew_cask_install() {
     local pkg="$1"
     if brew list --cask "$pkg" &>/dev/null 2>&1; then
-        ok "$pkg already installed"
+        # Verify the cask's app artifact actually exists; reinstall if broken
+        local app_path
+        app_path=$(brew info --cask --json=v2 "$pkg" 2>/dev/null \
+            | python3 -c "import sys,json; arts=json.load(sys.stdin)['casks'][0].get('artifacts',[]); print(next((a['app'][0] for a in arts if isinstance(a,dict) and 'app' in a),''))" 2>/dev/null || true)
+        if [[ -n "$app_path" && ! -d "/Applications/$app_path" && ! -d "$HOME/Applications/$app_path" ]]; then
+            info "Reinstalling $pkg via brew cask (app missing despite cask registration)"
+            brew reinstall --cask "$pkg"
+        else
+            ok "$pkg already installed"
+        fi
     else
         info "Installing $pkg via brew cask"
         brew install --cask "$pkg"
@@ -179,11 +188,7 @@ setup_terminal() {
     header "Terminal Emulator"
     if [[ "$OS" == "macos" ]]; then
         info "Installing Kitty (macOS)"
-        if ! command_exists kitty; then
-            brew_cask_install kitty
-        else
-            ok "Kitty already installed"
-        fi
+        brew_cask_install kitty
 
         info "Installing Scroll Reverser (macOS)"
         if ! brew list --cask scroll-reverser &>/dev/null 2>&1; then
@@ -705,6 +710,37 @@ setup_claude() {
 
 # ─── Main menu ───────────────────────────────────────────────────────────────
 main() {
+    # Require bash 4+ for associative arrays (declare -A).
+    # macOS ships bash 3.2; re-exec with Homebrew bash if needed.
+    if (( BASH_VERSINFO[0] < 4 )); then
+        if [[ -x /opt/homebrew/bin/bash ]]; then
+            exec /opt/homebrew/bin/bash "$0" "$@"
+        elif [[ -x /usr/local/bin/bash ]]; then
+            exec /usr/local/bin/bash "$0" "$@"
+        else
+            echo "Error: bash 4+ is required. Install it with: brew install bash" >&2
+            exit 1
+        fi
+    fi
+
+    # ── Parse flags ──
+    local ONLY_KEYS=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --only)
+                ONLY_KEYS="$2"
+                shift 2
+                ;;
+            --only=*)
+                ONLY_KEYS="${1#--only=}"
+                shift
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+
     detect_os
 
     echo ""
@@ -728,7 +764,7 @@ main() {
         "disable_snap:Disable Snap (Kubuntu only)"
         "fonts:JetBrainsMono Nerd Font"
         "fish:Fish Shell + config"
-        "terminal:Terminal (Ghostty/macOS · Kitty/Linux)"
+        "terminal:Terminal (Kitty)"
         "starship:Starship Prompt"
         "neovim:Neovim (nvim-setup)"
         "nvm:Node.js (via nvm)"
@@ -750,22 +786,35 @@ main() {
         "nordvpn:NordVPN"
     )
 
-    echo -e "${BOLD}Select components to install:${RESET}"
-    echo -e "${YELLOW}(press Enter to accept default [Y/n])${RESET}\n"
+    if [[ -n "$ONLY_KEYS" ]]; then
+        # --only mode: select only the specified comma-separated keys
+        info "Running in targeted mode — components: $ONLY_KEYS"
+        for item in "${items[@]}"; do
+            key="${item%%:*}"
+            if echo ",$ONLY_KEYS," | grep -q ",$key,"; then
+                SELECTED[$key]=1
+            else
+                SELECTED[$key]=0
+            fi
+        done
+    else
+        echo -e "${BOLD}Select components to install:${RESET}"
+        echo -e "${YELLOW}(press Enter to accept default [Y/n])${RESET}\n"
 
-    for item in "${items[@]}"; do
-        key="${item%%:*}"
-        label="${item#*:}"
+        for item in "${items[@]}"; do
+            key="${item%%:*}"
+            label="${item#*:}"
 
-        # Skip OS-specific items
-        if [[ "$key" == "disable_snap" && "$OS" != "linux" ]]; then continue; fi
+            # Skip OS-specific items
+            if [[ "$key" == "disable_snap" && "$OS" != "linux" ]]; then continue; fi
 
-        if prompt_yn "  Install $label?" y; then
-            SELECTED[$key]=1
-        else
-            SELECTED[$key]=0
-        fi
-    done
+            if prompt_yn "  Install $label?" y; then
+                SELECTED[$key]=1
+            else
+                SELECTED[$key]=0
+            fi
+        done
+    fi
 
     echo ""
     header "Starting Installation"

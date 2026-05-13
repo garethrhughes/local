@@ -43,3 +43,5 @@ function fish_greeting
      pokemon-colorscripts -r 1-2 --no-title 
    end
 end
+
+alias assume="source (brew --prefix)/bin/assume.fish"

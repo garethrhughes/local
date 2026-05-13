@@ -7,10 +7,27 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
 
 PASS=0; WARN=0; FAIL=0
+FIX_MODE=0
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Tracks component keys that have issues (space-separated, deduped via assoc array)
+declare -A ISSUE_KEYS
 
 pass()  { echo -e "  ${GREEN}✔${RESET}  $*"; ((PASS++)) || true; }
-warn()  { echo -e "  ${YELLOW}⚠${RESET}  $*"; ((WARN++)) || true; }
-fail()  { echo -e "  ${RED}✘${RESET}  $*"; ((FAIL++)) || true; }
+warn()  {
+    echo -e "  ${YELLOW}⚠${RESET}  $*"
+    ((WARN++)) || true
+    if [[ -n "${_CURRENT_KEY:-}" ]]; then
+        for _k in $_CURRENT_KEY; do ISSUE_KEYS["$_k"]=1; done
+    fi
+}
+fail()  {
+    echo -e "  ${RED}✘${RESET}  $*"
+    ((FAIL++)) || true
+    if [[ -n "${_CURRENT_KEY:-}" ]]; then
+        for _k in $_CURRENT_KEY; do ISSUE_KEYS["$_k"]=1; done
+    fi
+}
 header(){ echo -e "\n${BOLD}${CYAN}── $* ──${RESET}"; }
 
 check_cmd() {
@@ -70,6 +87,7 @@ detect_os() {
 
 # ─── Checks ──────────────────────────────────────────────────────────────────
 check_shell() {
+    _CURRENT_KEY="fish"
     header "Shell"
     check_cmd fish "Fish shell"
     if [[ "$SHELL" == *fish* ]]; then
@@ -80,6 +98,7 @@ check_shell() {
 }
 
 check_terminal() {
+    _CURRENT_KEY="terminal"
     header "Terminal"
     check_cmd kitty "Kitty"
     check_file "$HOME/.config/kitty/kitty.conf" "Kitty config"
@@ -94,12 +113,14 @@ check_terminal() {
 }
 
 check_prompt() {
+    _CURRENT_KEY="starship"
     header "Prompt"
     check_cmd starship "Starship"
     check_file "$HOME/.config/starship.toml" "starship.toml"
 }
 
 check_fish_config() {
+    _CURRENT_KEY="fish"
     header "Fish Config"
     check_file "$HOME/.config/fish/config.fish"    "config.fish"
     check_file "$HOME/.config/fish/fish_plugins"   "fish_plugins"
@@ -117,6 +138,7 @@ check_fish_config() {
 }
 
 check_nvim() {
+    _CURRENT_KEY="neovim"
     header "Neovim"
     check_cmd nvim "Neovim"
     if command -v nvim &>/dev/null; then
@@ -129,6 +151,7 @@ check_nvim() {
 }
 
 check_nvm() {
+    _CURRENT_KEY="nvm"
     header "Node.js (nvm)"
     # nvm.fish is the fish-native manager; check for it via fisher
     if command -v fish &>/dev/null; then
@@ -158,6 +181,7 @@ check_nvm() {
 }
 
 check_cli_tools() {
+    _CURRENT_KEY="cli_tools"
     header "CLI Tools"
     check_cmd bat       "bat"
     check_cmd fzf       "fzf"
@@ -168,6 +192,7 @@ check_cli_tools() {
 }
 
 check_fonts() {
+    _CURRENT_KEY="fonts"
     header "Fonts"
     if [[ "$OS" == "macos" ]]; then
         if brew list --cask font-jetbrains-mono-nerd-font &>/dev/null 2>&1; then
@@ -185,6 +210,7 @@ check_fonts() {
 }
 
 check_git() {
+    _CURRENT_KEY="git"
     header "Git"
     check_cmd git "git"
     check_file "$HOME/.gitconfig" "~/.gitconfig"
@@ -196,6 +222,7 @@ check_git() {
 }
 
 check_docker() {
+    _CURRENT_KEY="docker"
     header "Docker"
     check_cmd docker "docker"
     if command -v docker &>/dev/null; then
@@ -226,16 +253,28 @@ check_docker() {
 }
 
 check_granted() {
+    _CURRENT_KEY="granted"
     header "Granted (AWS)"
     check_cmd granted "granted"
     check_cmd assume   "assume"
 }
 
 check_apps() {
+    _CURRENT_KEY="sublime_text sublime_merge vscode firefox bitwarden spotify discord"
     header "Applications"
     if [[ "$OS" == "macos" ]]; then
+        local -A app_keys=(
+            ["Sublime Text"]="sublime_text"
+            ["Sublime Merge"]="sublime_merge"
+            ["Visual Studio Code"]="vscode"
+            ["Firefox"]="firefox"
+            ["Bitwarden"]="bitwarden"
+            ["Spotify"]="spotify"
+            ["Discord"]="discord"
+        )
         local apps=("Sublime Text" "Sublime Merge" "Visual Studio Code" "Firefox" "Bitwarden" "Spotify" "Discord")
         for app in "${apps[@]}"; do
+            _CURRENT_KEY="${app_keys[$app]}"
             if [[ -d "/Applications/${app}.app" ]] || \
                [[ -d "$HOME/Applications/${app}.app" ]]; then
                 pass "$app"
@@ -243,23 +282,27 @@ check_apps() {
                 fail "$app not found in /Applications"
             fi
         done
+        _CURRENT_KEY="vscode"
         check_cmd code "VS Code CLI (code)"
     else
-        check_cmd subl     "Sublime Text"
-        check_cmd smerge   "Sublime Merge"
-        check_cmd code     "VS Code"
-        check_cmd firefox  "Firefox"
-        check_cmd spotify  "Spotify"
-        check_cmd discord  "Discord"
+        _CURRENT_KEY="sublime_text"; check_cmd subl    "Sublime Text"
+        _CURRENT_KEY="sublime_merge"; check_cmd smerge "Sublime Merge"
+        _CURRENT_KEY="vscode"; check_cmd code          "VS Code"
+        _CURRENT_KEY="firefox"; check_cmd firefox      "Firefox"
+        _CURRENT_KEY="spotify"; check_cmd spotify      "Spotify"
+        _CURRENT_KEY="discord"; check_cmd discord      "Discord"
     fi
+    _CURRENT_KEY=""
 }
 
 check_opencode() {
+    _CURRENT_KEY="opencode"
     header "OpenCode"
     check_cmd opencode "opencode"
 }
 
 check_nordvpn() {
+    _CURRENT_KEY="nordvpn"
     header "NordVPN"
     check_cmd nordvpn "nordvpn"
     if command -v nordvpn &>/dev/null; then
@@ -279,6 +322,7 @@ check_nordvpn() {
 }
 
 check_vscode_extensions() {
+    _CURRENT_KEY="github_copilot"
     header "VS Code Extensions"
     if command -v code &>/dev/null; then
         local installed_exts
@@ -297,6 +341,7 @@ check_vscode_extensions() {
 }
 
 check_snap_disabled() {
+    _CURRENT_KEY="disable_snap"
     if [[ "$OS" != "linux" ]]; then return; fi
     header "Snap (Linux)"
     if command -v snap &>/dev/null; then
@@ -312,6 +357,7 @@ check_snap_disabled() {
 }
 
 check_dotfiles_symlinks() {
+    _CURRENT_KEY=""
     header "Dotfile Symlinks"
     check_file "$HOME/.config/fish/config.fish"   "fish/config.fish"
     check_file "$HOME/.config/starship.toml"       "starship.toml"
@@ -319,7 +365,7 @@ check_dotfiles_symlinks() {
     check_file "$HOME/.config/kitty/kitty.conf" "kitty/kitty.conf"
 }
 
-# ─── Summary ─────────────────────────────────────────────────────────────────
+# ─── Summary + optional fix ──────────────────────────────────────────────────
 print_summary() {
     echo ""
     echo -e "${BOLD}${CYAN}══════════════════════════════════════════${RESET}"
@@ -329,20 +375,82 @@ print_summary() {
     echo -e "  ${YELLOW}⚠ Warnings: $WARN${RESET}"
     echo -e "  ${RED}✘ Failed : $FAIL${RESET}"
     echo ""
-    if [[ "$FAIL" -gt 0 ]]; then
-        echo -e "${RED}${BOLD}Issues found. Run ./install.sh to fix missing components.${RESET}"
-        exit 1
-    elif [[ "$WARN" -gt 0 ]]; then
-        echo -e "${YELLOW}${BOLD}All critical checks passed with warnings.${RESET}"
-        exit 0
+    if [[ "$FAIL" -gt 0 || "$WARN" -gt 0 ]]; then
+        echo -e "${RED}${BOLD}Issues found. Run ./doctor.sh --fix to repair, or ./install.sh to reinstall components.${RESET}"
     else
         echo -e "${GREEN}${BOLD}Everything looks healthy!${RESET}"
-        exit 0
     fi
+}
+
+run_fix() {
+    if [[ "${#ISSUE_KEYS[@]}" -eq 0 ]]; then
+        echo -e "\n${GREEN}${BOLD}No fixable issues detected.${RESET}"
+        return
+    fi
+
+    # Build label map from install.sh items array (duplicated here for portability)
+    declare -A LABELS
+    LABELS=(
+        [disable_snap]="Disable Snap (Kubuntu only)"
+        [fonts]="JetBrainsMono Nerd Font"
+        [fish]="Fish Shell + config"
+        [terminal]="Terminal (Kitty)"
+        [starship]="Starship Prompt"
+        [neovim]="Neovim (nvim-setup)"
+        [nvm]="Node.js (via nvm)"
+        [cli_tools]="Core CLI tools (bat, fzf, ripgrep, fd)"
+        [granted]="Granted (AWS assume)"
+        [pokemon]="Pokemon Colorscripts"
+        [git]="Git + config"
+        [docker]="Docker"
+        [sublime_text]="Sublime Text"
+        [sublime_merge]="Sublime Merge"
+        [vscode]="VS Code"
+        [firefox]="Firefox"
+        [bitwarden]="Bitwarden"
+        [spotify]="Spotify"
+        [discord]="Discord"
+        [opencode]="OpenCode"
+        [github_copilot]="GitHub Copilot (VS Code extensions + CLI)"
+        [claude]="Claude"
+        [nordvpn]="NordVPN"
+    )
+
+    echo ""
+    echo -e "${BOLD}${CYAN}── Fix Issues ──${RESET}"
+    echo -e "${YELLOW}Select which components to fix (press Enter to accept default [Y/n]):${RESET}\n"
+
+    local selected_keys=()
+    for key in "${!ISSUE_KEYS[@]}"; do
+        local label="${LABELS[$key]:-$key}"
+        local ans
+        read -r -p "$(echo -e "  ${BOLD}Fix ${label}? [Y/n]${RESET} ")" ans
+        ans="${ans:-y}"
+        if [[ "$ans" =~ ^[Yy] ]]; then
+            selected_keys+=("$key")
+        fi
+    done
+
+    if [[ "${#selected_keys[@]}" -eq 0 ]]; then
+        echo -e "\n${YELLOW}No components selected — nothing to fix.${RESET}"
+        return
+    fi
+
+    local only_arg
+    only_arg=$(IFS=','; echo "${selected_keys[*]}")
+    echo ""
+    echo -e "${BOLD}Running: ./install.sh --only ${only_arg}${RESET}\n"
+    bash "$DOTFILES_DIR/install.sh" --only "$only_arg"
 }
 
 # ─── Main ────────────────────────────────────────────────────────────────────
 main() {
+    # Parse flags
+    local fix=0
+    for arg in "$@"; do
+        [[ "$arg" == "--fix" ]] && fix=1
+    done
+
     detect_os
     echo ""
     echo -e "${BOLD}${CYAN}╔══════════════════════════════════════════╗${RESET}"
@@ -369,6 +477,14 @@ main() {
     check_dotfiles_symlinks
 
     print_summary
+
+    if [[ "$fix" -eq 1 ]]; then
+        run_fix
+    fi
+
+    if [[ "$FAIL" -gt 0 ]]; then
+        exit 1
+    fi
 }
 
 main "$@"
